@@ -77,7 +77,7 @@ export
   # 1 Endace
   # 2 Counterflow
   # 3 Moloch
-  # 4 Steganographer
+  # 4 Stenographer
 
   #Configuration Variables
   option product : int = 0;
@@ -123,7 +123,7 @@ event connection_state_remove(c: connection)
       productUri += fmt("%s/sessions?graphType=lpHisto&seriesType=bars&expression=ip%%3D%%3D%s%%26%%26ip%%3D%%3D%s&stopTime=%s&startTime=%s", hostDomainName_orIP,10.1.2.1, 192.168.14.3, 1561608000, 1561521600);
       break;
     case 4:
-      #Steganographer
+      #Stenographer
       #productUri += fmt("stenoread /'host %s and host %s after %s before %s/'", originator, responder, strftime("%FT%TZ", startTime), strftime("%FT%TZ", endTime)); 
       productUri += fmt("stenoread 'host %s and host %s after %s before %s'", originator, responder, strftime("%FT%T%z", startTime), strftime("%FT%T%z", endTime));
       break;
