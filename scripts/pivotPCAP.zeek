@@ -9,18 +9,18 @@
 #   can be configure at a time.
 # 
 # CONFIGURATION
-#   Full PCAP product number:
-#     0 FireEye PX
-#     1 Endace
-#     2 Counterflow
-#     3 Moloch
-#     4 Stenographer
+#   Full PCAP products:
+#     FireEye PX------FIREEYE
+#     Endace----------ENDACE
+#     Counterflow-----COUNTERFLOW
+#     Moloch----------MOLOCH
+#     Stenographer----STENOGRAPHER
 # 
 #   The following configuration variables MUST be configured in this source
 #   file or within a configureation file using the configuration framework.
 #
-#     local product : int = 0; #FireEye PX
-#     local hostDomainName_orIP : string = "watcher.corelight.com"; #Host and/or domainname of PCAP solution
+#     const product : PRODUCT=FIREEYE &redef;
+#     const hostDomainName_orIP : string = "watcher.corelight.com";
 # 
 # AUTHOR
 # 
@@ -72,21 +72,26 @@ module pivotPCAP;
 
 export
 {
-  # Full PCAP product number
-  # 0 FireEye PX
-  # 1 Endace
-  # 2 Counterflow
-  # 3 Moloch
-  # 4 Stenographer
+  type PRODUCT : enum
+  {
+    FIREEYE,
+    ENDACE,
+    COUNTERFLOW,
+    MOLOCH,
+    STENOGRAPHER
+  };
 
   #Configuration Variables
-  option product : int = 0;
-  option hostDomainName_orIP : string = "127.0.0.1";
+  #option product : PRODUCT=FIREEYE &redef;
+  const product : PRODUCT=FIREEYE &redef;
+  #option hostDomainName_orIP : string = "127.0.0.1" &redef;
+  const hostDomainName_orIP : string = "127.0.0.1" &redef;
 }
 
 # Add PCAP Link field to the connection log record.
 redef record Conn::Info += {
   pcap_link: string &default="-" &log;  
+  #pcap_link: string &log;  
 };
 
 event connection_state_remove(c: connection)
@@ -102,34 +107,30 @@ event connection_state_remove(c: connection)
   local oPort : port = c$id$orig_p;
   local responder : addr = c$id$resp_h;
   local rPort : port = c$id$resp_p;
-  
-  local productUri : string = "";
 
-  switch ( |product| )
+  switch ( product )
     {
-    case 0:
+    case FIREEYE:
       #FireEye PX URI
-      productUri += fmt("https://%s/i/searches.html?stime=%s&etime=%s&xpf=host %s and %s", hostDomainName_orIP, strftime("%Y%m%d.%H%M%S", startTime), strftime("%Y%m%d.%H%M%S", endTime), originator, responder);
-      #productUri += fmt("https://%s/i/searches.html?stime=%s&etime=%s&xpf=host %s and %s", hostDomainName_orIP, startTime, endTime, originator, responder);
+      c$conn$pcap_link = fmt("https://%s/i/searches.html?stime=%s&etime=%s&xpf=host %s and %s", hostDomainName_orIP, strftime("%Y%m%d.%H%M%S", startTime), strftime("%Y%m%d.%H%M%S", endTime), originator, responder);
+      #c$conn$pcap_link = fmt("https://%s/i/searches.html?stime=%s&etime=%s&xpf=host %s and %s", hostDomainName_orIP, startTime, endTime, originator, responder);
       break;
-    case 1:
+    case ENDACE:
       #Endace
       break;
-    case 2:
+    case COUNTERFLOW:
       #Counterflow
       break;
-    case 3:
+    case MOLOCH:
       #Moloch
-      productUri += fmt("%s/sessions?graphType=lpHisto&seriesType=bars&expression=ip%%3D%%3D%s%%26%%26ip%%3D%%3D%s&stopTime=%s&startTime=%s", hostDomainName_orIP,10.1.2.1, 192.168.14.3, 1561608000, 1561521600);
+      c$conn$pcap_link = fmt("%s/sessions?graphType=lpHisto&seriesType=bars&expression=ip%%3D%%3D%s%%26%%26ip%%3D%%3D%s&stopTime=%s&startTime=%s", hostDomainName_orIP,10.1.2.1, 192.168.14.3, 1561608000, 1561521600);
       break;
-    case 4:
+    case STENOGRAPHER:
       #Stenographer
-      #productUri += fmt("stenoread /'host %s and host %s after %s before %s/'", originator, responder, strftime("%FT%TZ", startTime), strftime("%FT%TZ", endTime)); 
-      productUri += fmt("stenoread 'host %s and host %s after %s before %s'", originator, responder, strftime("%FT%T%z", startTime), strftime("%FT%T%z", endTime));
+      #c$conn$pcap_link = fmt("stenoread /'host %s and host %s after %s before %s/'", originator, responder, strftime("%FT%TZ", startTime), strftime("%FT%TZ", endTime)); 
+      c$conn$pcap_link = fmt("stenoread 'host %s and host %s after %s before %s'", originator, responder, strftime("%FT%T%z", startTime), strftime("%FT%T%z", endTime));
       break;
     default:
       break;
     }
-  
-  c$conn$pcap_link = productUri;
 }

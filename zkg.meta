@@ -1,0 +1,8 @@
+[package]
+description = This module extends the conn.log to include a pcap_link
+  column that contains a properly formed search uri for a given
+  configured full pcap solution. Several pcap solutions are
+  supported; however, only one solution can be configure at a time.
+script_dir = scripts
+tags = bro plugin, zeek plugin, corelight plugin, pcap
+credits = Paul Bartruff <paul@corelight.com>
